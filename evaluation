@@ -1,0 +1,276 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
+
+from sklearn.cluster import KMeans
+from collections import Counter
+from mpl_toolkits.mplot3d import Axes3D
+from pylab import *
+
+import sklearn
+
+from sklearn.cluster import KMeans
+
+
+
+import rdflib
+from urlparse import urlparse
+
+import hashlib
+
+
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+from rdflib import Graph
+
+mapnodetohash={}
+
+def cleaning(p):
+ tokens = p.split("/")
+
+
+ return tokens[len(tokens)-1]
+
+
+
+
+
+
+
+g = Graph()
+mapping={}
+target = open("newdata", 'w')
+targetspo = open("spocomp", 'w')
+targetdic = open("mappingnodestohash", 'w')
+#g.load('http://dbpedia.org/ontology/Film')
+triples=open("newdata",'w')
+g.parse("/Users/komalsharan/Desktop/Projects/Machine Learning/node2vec-master/src/aifb_fixed_complete.n3",format='n3')
+list=[]
+for s, p, o in g:
+ str1=s+"    |   "+p+"     |    "+o+"\n"+"\n"
+ targetspo.write(str1)
+ #print s,p,o
+ s=cleaning(s)
+ p=cleaning(p)
+ o=cleaning(o)
+ #print s,p,o
+ #break
+
+
+ #s = urlparse(s)
+ #p = urlparse(p)
+ #o = urlparse(o)
+ #print str(s),str(p),str(o)
+# print s,p,o
+
+ #s = s.path.split('/')[3]
+
+ #p = p.path.split('/')[1]
+ #print o
+ #o = o.path.split('/')[3]
+ #print s,p,o
+ print "\n"
+
+ #s = s.path.split('/')[2]
+ #p = p.path.split('/')[2]
+ #o = o.path.split('/')[0]
+
+
+
+
+ """triples.write(str(s))
+ triples.write("|")
+ triples.write(str(p))
+ triples.write("|")
+ if o:
+  print type(o)
+  triples.write(o.encode('utf-8'))"""
+
+
+ ids = int(hashlib.md5(s).hexdigest(), 16)
+ ids=str(ids)
+ mapping[ids]=str(s)
+ mapnodetohash[s]=ids
+
+ idp = int(hashlib.md5(p).hexdigest(), 16)
+ idp=str(idp)
+ mapping[idp] = str(p)
+ mapnodetohash[p] = idp
+ if o:
+  ido = int(hashlib.md5(o).hexdigest(), 16)
+  ido = str(ido)
+  mapping[ido] = str(o)
+  mapnodetohash[o] = ido
+
+
+
+
+
+ target.write(str(ids))
+ target.write("  ")
+ target.write(str(idp))
+ target.write("\n")
+
+ if o:
+  target.write(str(idp))
+  target.write("  ")
+  target.write(str(ido))
+  target.write("\n")
+
+
+print mapping
+for key,value in mapnodetohash.items():
+
+ str2=key+':'+value+"\n"
+ targetdic.write(str2)
+
+
+
+
+
+
+#############################################making graph
+
+
+
+
+
+
+
+
+
+
+with open("trainingSet (1).tsv") as f:
+    content = f.readlines()
+
+
+mappingwithclasses=[]
+
+list1=[]
+list2=[]
+list3=[]
+list4=[]
+id=0
+for x in content:
+
+
+ list=x.split("\t")
+ print str(list[2].split("/")[len(list[2].split("/")) - 1])
+ if str(list[2].split("/")[len(list[2].split("/"))-1])=='id1instance\r\n':
+  id=1
+  print "in 1"
+ if list[2].split("/")[len(list[2].split("/"))-1]=='id2instance\r\n':
+  id=2
+  print "in 2"
+ if list[2].split("/")[len(list[2].split("/"))-1]=='id3instance\r\n':
+  id=3
+  print "in 3"
+ if list[2].split("/")[len(list[2].split("/"))-1]=='id4instance\r\n':
+  id=4
+  print "in 4"
+
+ instance=list[0].split("/")[len(list[0].split("/"))-1]
+ print instance
+
+
+
+ if id==1:
+  list1.append(instance)
+ if id==2:
+   list2.append(instance)
+ if id==3:
+   list3.append(instance)
+ if id==4:
+   list4.append(instance)
+
+################################################segregated instances into clsses############
+
+list=[]
+embedding=[]
+with open("/Users/komalsharan/Desktop/Projects/Machine Learning/node2vec-master/emb/karate.emb") as f:
+    content = f.readlines()
+count=0
+skipfirst=0
+test=[]
+flag=0
+number=0;
+for x in content:
+ if skipfirst==1:
+  tokens=x.split(" ")
+
+  count=0
+  number=0
+  for y in tokens:
+   if y == '12001944138066302894483558604984409117' or y == '249994708430809892559634005850460968099': #or y == '32410814978789283538501515879969922327':
+    flag = 1
+    print "yes"
+   if count==1:
+
+
+    float(y)
+    list.append(y)
+    number = number + 1
+
+   count = 1
+  embedding.append(list)
+  if flag==1:
+   test.append(list)
+   flag=0
+
+ else:
+  skipfirst=1
+
+  print number
+ list=[]
+num_clusters = 4
+
+
+
+
+x=np.array(embedding,dtype=object)
+cluster= KMeans(n_clusters=4, random_state=0).fit(x)
+#print cluster.labels_
+centroids=cluster.cluster_centers_
+labels = cluster.labels_
+
+print labels
+########################################run kmeans###########################################
+"""
+c = Counter(labels)
+
+fig = figure()
+ax = fig.gca(projection='3d')
+
+
+for i in range(len(x)):
+    print("coordinate:",x[i], "label:", labels[i])
+    print "i : ",i
+    print "color[labels[i]] : ",color[labels[i]]
+    ax.scatter(x[i][0], x[i][1], x[i][2], x[i][3],c=color[labels[i]])
+
+
+for cluster_number in range(4):
+  print("Cluster {} contains {} samples".format(cluster_number, c[cluster_number]))
+
+ax.scatter(centroids[:, 0],centroids[:, 1], centroids[:, 2], centroids[:, 3],marker = "x", s=150, linewidths = 5, zorder = 100)
+
+plt.show()#print test
+print "\n"
+print cluster.predict(test[0])
+print "\n"
+print cluster.predict(test[1])
+print "\n"
+print cluster.predict(test[2])"""
+
+
+
+
+
+
+
