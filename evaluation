@@ -1,25 +1,28 @@
+
+
+
 import numpy as np
-import matplotlib.pyplot as plt
 
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib
 
-from sklearn.cluster import KMeans
-from collections import Counter
-from mpl_toolkits.mplot3d import Axes3D
-from pylab import *
+import unicodedata
 
-import sklearn
+
 
 from sklearn.cluster import KMeans
 
 
 
-import rdflib
-from urlparse import urlparse
 
+import hashlib
+from sklearn.cluster import DBSCAN
+
+from sklearn import svm
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+from rdflib import Graph
 import hashlib
 
 
@@ -40,9 +43,9 @@ def cleaning(p):
 
 
 
-
-
-
+oppmapping={}
+instancelist=[]
+instancedict={}
 g = Graph()
 mapping={}
 target = open("newdata", 'w')
@@ -55,19 +58,22 @@ list=[]
 for s, p, o in g:
  str1=s+"    |   "+p+"     |    "+o+"\n"+"\n"
  targetspo.write(str1)
- #print s,p,o
- s=cleaning(s)
- p=cleaning(p)
- o=cleaning(o)
+ #print s,p,
+ #s=cleaning(s)
+ #p=cleaning(p)
+ #o=cleaning(o)
+
  #print s,p,o
  #break
+ s=str(s)
+ p=str(p)
+ o=str(o)
 
-
- #s = urlparse(s)
- #p = urlparse(p)
- #o = urlparse(o)
+ #s = str(urlparse(s))
+ #p = str(urlparse(p))
+ #o = str(urlparse(o))
  #print str(s),str(p),str(o)
-# print s,p,o
+ #print s,p,o
 
  #s = s.path.split('/')[3]
 
@@ -75,7 +81,7 @@ for s, p, o in g:
  #print o
  #o = o.path.split('/')[3]
  #print s,p,o
- print "\n"
+ #print "\n"
 
  #s = s.path.split('/')[2]
  #p = p.path.split('/')[2]
@@ -126,9 +132,15 @@ for s, p, o in g:
 
 print mapping
 for key,value in mapnodetohash.items():
-
+ if "instance" in key:
+  instancedict[key]=value
+  oppmapping[value]=key
+  instancelist.append(key)
  str2=key+':'+value+"\n"
- targetdic.write(str2)
+ #targetdic.write(str2)
+
+#print instancedict
+#print instancelist
 
 
 
@@ -146,12 +158,74 @@ for key,value in mapnodetohash.items():
 
 
 
+with open("testSet.tsv") as f:
+    content = f.readlines()
+
+testinginstances=[]
+mappingwithclasses=[]
+y_testing=[]
+list1=[]
+list2=[]
+list3=[]
+list4=[]
+id=0
+for x in content:
+
+
+
+ list=x.split("\t")
+ print list
+ #print str(list[2].split("/")[len(list[2].split("/")) - 1])
+ if str(list[2].split("/")[len(list[2].split("/"))-1])=='id1instance\r\n':
+  id=1
+  y_testing.append(1)
+  #print "in 1"
+ if list[2].split("/")[len(list[2].split("/"))-1]=='id2instance\r\n':
+  id=2
+  y_testing.append(2)
+ if list[2].split("/")[len(list[2].split("/"))-1]=='id3instance\r\n':
+  id=3
+  y_testing.append(3)
+  #print "in 3"
+ if list[2].split("/")[len(list[2].split("/"))-1]=='id4instance\r\n':
+  id=4
+  y_testing.append(4)
+  #print "in 4"
+
+ instance=list[0].split("/")[len(list[0].split("/"))-1]
+ testinginstances.append(list[0])
+ print "teses ae"
+ print testinginstances
+
+
+
+
+ if id==1:
+  list1.append(instance)
+ if id==2:
+  list2.append(instance)
+ if id==3:
+  list3.append(instance)
+ if id==4:
+  list4.append(instance)
+intesting=[]
+
+for i in testinginstances:
+ print i
+
+ intesting.append(instancedict[i])
+
+
+
+
+
+
 with open("trainingSet (1).tsv") as f:
     content = f.readlines()
 
-
+traininginstances=[]
 mappingwithclasses=[]
-
+y_training=[]
 list1=[]
 list2=[]
 list3=[]
@@ -161,33 +235,43 @@ for x in content:
 
 
  list=x.split("\t")
- print str(list[2].split("/")[len(list[2].split("/")) - 1])
+ #print str(list[2].split("/")[len(list[2].split("/")) - 1])
  if str(list[2].split("/")[len(list[2].split("/"))-1])=='id1instance\r\n':
   id=1
-  print "in 1"
+  y_training.append(1)
+  #print "in 1"
  if list[2].split("/")[len(list[2].split("/"))-1]=='id2instance\r\n':
   id=2
-  print "in 2"
+  y_training.append(2)
  if list[2].split("/")[len(list[2].split("/"))-1]=='id3instance\r\n':
   id=3
-  print "in 3"
+  y_training.append(3)
+  #print "in 3"
  if list[2].split("/")[len(list[2].split("/"))-1]=='id4instance\r\n':
   id=4
-  print "in 4"
+  y_training.append(4)
+  #print "in 4"
 
  instance=list[0].split("/")[len(list[0].split("/"))-1]
- print instance
+ traininginstances.append(list[0])
+
 
 
 
  if id==1:
   list1.append(instance)
  if id==2:
-   list2.append(instance)
+  list2.append(instance)
  if id==3:
-   list3.append(instance)
+  list3.append(instance)
  if id==4:
-   list4.append(instance)
+  list4.append(instance)
+intraining=[]
+
+for i in traininginstances:
+ intraining.append(instancedict[i])
+print "intraining"
+print intraining
 
 ################################################segregated instances into clsses############
 
@@ -198,8 +282,11 @@ with open("/Users/komalsharan/Desktop/Projects/Machine Learning/node2vec-master/
 count=0
 skipfirst=0
 test=[]
+test1=[]
 flag=0
-number=0;
+flagtest=0
+number=0
+dontpickup=False
 for x in content:
  if skipfirst==1:
   tokens=x.split(" ")
@@ -207,66 +294,191 @@ for x in content:
   count=0
   number=0
   for y in tokens:
-   if y == '12001944138066302894483558604984409117' or y == '249994708430809892559634005850460968099': #or y == '32410814978789283538501515879969922327':
+
+   if y in intraining:
+
     flag = 1
-    print "yes"
+   if y in intesting:
+
+    flagtest = 1
    if count==1:
-
-
     float(y)
     list.append(y)
     number = number + 1
 
    count = 1
-  embedding.append(list)
-  if flag==1:
-   test.append(list)
+
+   embedding.append(list)
+   if flag==1:
+
+    test.append(list)
+   flag=0
+   if flagtest==1:
+     test1.append(list)
+   flagtest=0
+ else:
+  skipfirst=1
+
+  print number
+ list=[]
+
+
+print len(test)
+print len(test1)
+print y_training
+print  y_testing
+X_train = np.array(test)
+Y_train=np.array(y_training)
+X_test = np.array(test1)
+Y_test=np.array(y_testing)
+clf = svm.SVC(kernel='poly')
+
+
+clf.fit(X_train,Y_train)
+
+
+print clf.predict(X_train)
+
+
+
+
+
+
+
+"""
+
+list1=[]
+embedding=[]
+with open("/Users/komalsharan/Desktop/Projects/Machine Learning/node2vec-master/emb/karate.emb") as f:
+    content = f.readlines()
+count1=0
+skipfirst=0
+test1=[]
+flag1=0
+number=0
+dontpickup1=False
+for x in content:
+ if skipfirst==1:
+  tokens=x.split(" ")
+
+  count=0
+  number=0
+  for y in tokens:
+
+   if y in intraining:
+
+    flag = 1
+   if count==1:
+    float(y)
+    list1.append(y)
+    number = number + 1
+
+   count1 = 1
+
+   embedding.append(list)
+   if flag==1:
+
+    test1.append(list)
    flag=0
 
  else:
   skipfirst=1
 
   print number
- list=[]
-num_clusters = 4
+ list1=[]
 
 
+print len(test)
+X = np.array(test)
+Y=np.array(y_training)
 
+clf = svm.SVC()
+y=[1,2,3,4]
 
+clf.fit(X,Y)"""
+"""
 x=np.array(embedding,dtype=object)
-cluster= KMeans(n_clusters=4, random_state=0).fit(x)
+db = DBSCAN(eps=0.3, min_samples=300).fit(x)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+
+print('Estimated number of clusters: %d' % n_clusters_)
+
+"""
+"""
+x=np.array(embedding,dtype=object)
+cluster= KMeans(n_clusters=3, random_state=0).fit(x)
 #print cluster.labels_
 centroids=cluster.cluster_centers_
-labels = cluster.labels_
+labels = cluster.labels_"""
 
-print labels
+
 ########################################run kmeans###########################################
 """
-c = Counter(labels)
+prediction1=[]
+prediction2=[]
+prediction3=[]
+prediction4=[]
 
-fig = figure()
-ax = fig.gca(projection='3d')
+i=0
 
-
-for i in range(len(x)):
-    print("coordinate:",x[i], "label:", labels[i])
-    print "i : ",i
-    print "color[labels[i]] : ",color[labels[i]]
-    ax.scatter(x[i][0], x[i][1], x[i][2], x[i][3],c=color[labels[i]])
-
-
-for cluster_number in range(4):
-  print("Cluster {} contains {} samples".format(cluster_number, c[cluster_number]))
-
-ax.scatter(centroids[:, 0],centroids[:, 1], centroids[:, 2], centroids[:, 3],marker = "x", s=150, linewidths = 5, zorder = 100)
-
-plt.show()#print test
+for x in test:
+ if cluster.predict(x)==0:
+  print mapnodetoinstance[mapmembeddingtode[i]]
+  prediction1.append(mapnodetoinstance[mapmembeddingtode[i]].encode('ascii','ignore'))
+ if cluster.predict(x)==1:
+  print mapnodetoinstance[str(mapmembeddingtode[i])]
+  prediction2.append(mapnodetoinstance[mapmembeddingtode[i]].encode('ascii','ignore'))
+ if cluster.predict(x) == 2:
+  print mapnodetoinstance[str(mapmembeddingtode[i])]
+  prediction3.append(mapnodetoinstance[mapmembeddingtode[i]].encode('ascii','ignore'))
+ #if cluster.predict(x) == 3:
+  #prediction4.append(mapnodetoinstance[mapmembeddingtode[i]].encode('ascii','ignore'))
+ i=i+1
+print list1
+print list2
+print list3
+print list4
 print "\n"
-print cluster.predict(test[0])
+print prediction1
 print "\n"
-print cluster.predict(test[1])
+print prediction2
 print "\n"
-print cluster.predict(test[2])"""
+print prediction3
+print "\n"
+print prediction4
+
+originalsize=len(list1)
+count1=0
+count2=0
+count3=0
+count4=0
+
+
+"""
+"""
+for x in list1:
+ if x in prediction4:
+  print "correct"
+ else:
+  print "wrong"
+
+
+for x in list1:
+ if x in prediction3:
+  print "correct"
+ else:
+  print "wrong"
+
+print count1
+print count2
+print count3
+print count4"""
+
+
+
 
 
 
