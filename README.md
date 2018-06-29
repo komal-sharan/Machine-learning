@@ -1,8 +1,4 @@
 # Machine-learning
 
-This is an  exploratory project in deep learning which entails the following concepts
-1)  Training and Testing different distributions
-2)  Bias and Variance with different data distributions
-3)  Transfer Learning
-4)  Multi-task Learning
-
+This is an experimental set up of evaluating how well does
+the node2vec analogy wok on graph to vec using dbpedia data
